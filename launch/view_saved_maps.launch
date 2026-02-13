@@ -1,0 +1,88 @@
+<launch>
+  <!-- Launch file to visualize saved 3D and 2D maps in RViz -->
+  <!-- Supports Laser_map, cloud_registered_currpoints, and cloud_registered_body_currpoints topics -->
+  
+  <arg name="map_dir" default="/saved_maps" />
+  
+  <!-- Laser_map files -->
+  <arg name="map_3d_file" default="premap.pcd" />
+  <arg name="map_2d_file" default="premap_scan.pcd" />
+  
+  <!-- cloud_registered currPoints files -->
+  <arg name="cloud_registered_currpoints_3d_file" default="premap_cloud_registered_currpoints.pcd" />
+  <arg name="cloud_registered_currpoints_2d_file" default="premap_cloud_registered_currpoints_scan.pcd" />
+  
+  <!-- cloud_registered_body currPoints files -->
+  <arg name="cloud_registered_body_currpoints_3d_file" default="premap_cloud_registered_body_currpoints.pcd" />
+  <arg name="cloud_registered_body_currpoints_2d_file" default="premap_cloud_registered_body_currpoints_scan.pcd" />
+  
+  <!-- Options to enable/disable each topic -->
+  <arg name="publish_laser_map" default="true" />
+  <arg name="publish_cloud_registered_currpoints" default="true" />
+  <arg name="publish_cloud_registered_body_currpoints" default="true" />
+  
+  <arg name="rviz" default="true" />
+  <arg name="rviz_config" default="$(find fast_lio)/rviz_cfg/loam_livox.rviz" />
+  
+  <!-- Publish Laser_map 3D (full point cloud) -->
+  <group if="$(arg publish_laser_map)">
+    <node name="map_3d_publisher" pkg="fast_lio" type="view_maps_publisher.py" output="screen">
+      <param name="pcd_file" value="$(arg map_dir)/$(arg map_3d_file)" />
+      <param name="topic_name" value="/saved_map_3d" />
+      <param name="frame_id" value="camera_init" />
+      <param name="rate" value="1.0" />
+    </node>
+    
+    <!-- Publish Laser_map 2D (z=0 slice) -->
+    <node name="map_2d_publisher" pkg="fast_lio" type="view_maps_publisher.py" output="screen">
+      <param name="pcd_file" value="$(arg map_dir)/$(arg map_2d_file)" />
+      <param name="topic_name" value="/saved_map_2d" />
+      <param name="frame_id" value="camera_init" />
+      <param name="rate" value="1.0" />
+    </node>
+  </group>
+  
+  <!-- Publish cloud_registered currPoints 3D -->
+  <group if="$(arg publish_cloud_registered_currpoints)">
+    <node name="cloud_registered_currpoints_3d_publisher" pkg="fast_lio" type="view_maps_publisher.py" output="screen">
+      <param name="pcd_file" value="$(arg map_dir)/$(arg cloud_registered_currpoints_3d_file)" />
+      <param name="topic_name" value="/saved_cloud_registered_currpoints_3d" />
+      <param name="frame_id" value="camera_init" />
+      <param name="rate" value="1.0" />
+    </node>
+    
+    <!-- Publish cloud_registered currPoints 2D -->
+    <node name="cloud_registered_currpoints_2d_publisher" pkg="fast_lio" type="view_maps_publisher.py" output="screen">
+      <param name="pcd_file" value="$(arg map_dir)/$(arg cloud_registered_currpoints_2d_file)" />
+      <param name="topic_name" value="/saved_cloud_registered_currpoints_2d" />
+      <param name="frame_id" value="camera_init" />
+      <param name="rate" value="1.0" />
+    </node>
+  </group>
+  
+  <!-- Publish cloud_registered_body currPoints 3D -->
+  <group if="$(arg publish_cloud_registered_body_currpoints)">
+    <node name="cloud_registered_body_currpoints_3d_publisher" pkg="fast_lio" type="view_maps_publisher.py" output="screen">
+      <param name="pcd_file" value="$(arg map_dir)/$(arg cloud_registered_body_currpoints_3d_file)" />
+      <param name="topic_name" value="/saved_cloud_registered_body_currpoints_3d" />
+      <param name="frame_id" value="body" />
+      <param name="rate" value="1.0" />
+    </node>
+    
+    <!-- Publish cloud_registered_body currPoints 2D -->
+    <node name="cloud_registered_body_currpoints_2d_publisher" pkg="fast_lio" type="view_maps_publisher.py" output="screen">
+      <param name="pcd_file" value="$(arg map_dir)/$(arg cloud_registered_body_currpoints_2d_file)" />
+      <param name="topic_name" value="/saved_cloud_registered_body_currpoints_2d" />
+      <param name="frame_id" value="body" />
+      <param name="rate" value="1.0" />
+    </node>
+  </group>
+  
+  <!-- Launch RViz if requested -->
+  <group if="$(arg rviz)">
+    <node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" 
+          args="-d $(arg rviz_config)" output="screen" />
+  </group>
+  
+</launch>
+

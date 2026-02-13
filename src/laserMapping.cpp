@@ -762,6 +762,8 @@ int main(int argc, char** argv)
     nh.param<bool>("publish/scan_publish_en",scan_pub_en, true);
     nh.param<bool>("publish/dense_publish_en",dense_pub_en, true);
     nh.param<bool>("publish/scan_bodyframe_pub_en",scan_body_pub_en, true);
+    int map_pub_skip = 1;  // Publish map every N frames (1 = every frame, 10 = every 10th frame)
+    nh.param<int>("publish/map_pub_skip", map_pub_skip, 1);
     nh.param<int>("max_iteration",NUM_MAX_ITERATIONS,4);
     nh.param<string>("map_file_path",map_file_path,"");
     nh.param<string>("common/lid_topic",lid_topic,"/livox/lidar");
@@ -939,7 +941,7 @@ int main(int argc, char** argv)
             fout_pre<<setw(20)<<Measures.lidar_beg_time - first_lidar_time<<" "<<euler_cur.transpose()<<" "<< state_point.pos.transpose()<<" "<<ext_euler.transpose() << " "<<state_point.offset_T_L_I.transpose()<< " " << state_point.vel.transpose() \
             <<" "<<state_point.bg.transpose()<<" "<<state_point.ba.transpose()<<" "<<state_point.grav<< endl;
 
-            if(0) // If you need to see map point, change to "if(1)"
+            if(1) // If you need to see map point, change to "if(1)"
             {
                 PointVector ().swap(ikdtree.PCL_Storage);
                 ikdtree.flatten(ikdtree.Root_Node, ikdtree.PCL_Storage, NOT_RECORD);
@@ -981,7 +983,14 @@ int main(int argc, char** argv)
             if (scan_pub_en || pcd_save_en)      publish_frame_world(pubLaserCloudFull);
             if (scan_pub_en && scan_body_pub_en) publish_frame_body(pubLaserCloudFull_body);
             // publish_effect_world(pubLaserCloudEffect);
-            // publish_map(pubLaserCloudMap);
+            // Throttle map publishing based on map_pub_skip parameter
+            static int map_pub_counter = 0;
+            map_pub_counter++;
+            if (map_pub_counter >= map_pub_skip)
+            {
+                publish_map(pubLaserCloudMap);
+                map_pub_counter = 0;
+            }
 
             /*** Debug variables ***/
             if (runtime_pos_log)
